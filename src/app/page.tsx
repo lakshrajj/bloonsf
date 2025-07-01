@@ -20,6 +20,9 @@ export default function Home() {
   const [currentLoveNote, setCurrentLoveNote] = useState(0);
   const [score, setScore] = useState(0);
   const [balloons, setBalloons] = useState<Array<{id: number, x: number, y: number, popped: boolean}>>([]);
+  const [openedGifts, setOpenedGifts] = useState<Set<number>>(new Set());
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [musicEnabled, setMusicEnabled] = useState(false);
 
   const startAdventure = () => {
     setShowSplash(false);
@@ -47,11 +50,28 @@ export default function Home() {
     setScore(prev => prev + 100);
   };
 
+  const openGift = (id: number) => {
+    setOpenedGifts(prev => new Set([...prev, id]));
+  };
+
+  const toggleMusic = () => {
+    setMusicEnabled(prev => !prev);
+  };
+
   useEffect(() => {
     if (currentScreen === 'minigames') {
       initBalloonGame();
     }
   }, [currentScreen]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   if (showSplash) {
     return (
@@ -134,7 +154,17 @@ export default function Home() {
   // Castle of Love Screen
   if (currentScreen === 'castle') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-red-900 relative">
+      <>
+        <div 
+          className="cursor-pet"
+          style={{
+            left: mousePos.x + 10,
+            top: mousePos.y - 30,
+          }}
+        >
+          💖
+        </div>
+        <div className="min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-red-900 relative">
         <div className="absolute inset-0">
           {[...Array(20)].map((_, i) => (
             <div
@@ -199,6 +229,90 @@ export default function Home() {
                 <div className="text-3xl mb-2">❤️</div>
                 <h3 className="text-red-400 mb-2">Kind Heart</h3>
                 <p className="text-sm text-gray-300">Pure love and care!</p>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <button onClick={goBack} className="rpg-button">
+                🏠 Back to Map
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </>
+    );
+  }
+
+  // Gift Garden Screen
+  if (currentScreen === 'garden') {
+    const gifts = [
+      { id: 1, title: "Virtual Hug", desc: "A warm digital embrace! 🤗", emoji: "🌺", gift: "Sending you the biggest virtual hug! You're amazing!" },
+      { id: 2, title: "Love Poem", desc: "Words from the heart 💝", emoji: "🌸", gift: "Roses are red, violets are blue, nobody's as perfect as you! 💕" },
+      { id: 3, title: "Future Plans", desc: "Dreams we'll share 🌟", emoji: "🌻", gift: "Can't wait for all our future adventures together! ✈️🗺️" },
+      { id: 4, title: "Compliment Bouquet", desc: "Beautiful words for you 💐", emoji: "🌷", gift: "You're brilliant, kind, funny, and absolutely wonderful!" },
+      { id: 5, title: "Memory Box", desc: "Special moments 📦", emoji: "🌼", gift: "Every moment with you becomes a treasured memory! 💫" },
+      { id: 6, title: "Surprise Date", desc: "Adventure awaits! 🎭", emoji: "🌹", gift: "Let's plan something magical together soon! 🎪✨" }
+    ];
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-900 via-emerald-900 to-teal-900 relative">
+        <div className="absolute inset-0">
+          {[...Array(25)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute text-green-300 sparkle"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`
+              }}
+            >
+              🌟
+            </div>
+          ))}
+        </div>
+
+        <div className="relative z-10 p-4">
+          <header className="text-center mb-8">
+            <h1 className="text-3xl md:text-5xl text-white rpg-text-glow mb-4">
+              🌸 Gift Garden 🌸
+            </h1>
+            <p className="text-green-300">Click the flowers to reveal special surprises!</p>
+          </header>
+
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {gifts.map(gift => (
+                <div key={gift.id} className="rpg-panel text-center hover:glow transition-all duration-300">
+                  <div 
+                    className={`cursor-pointer ${openedGifts.has(gift.id) ? 'opacity-50' : 'hover:scale-110'} transition-transform`}
+                    onClick={() => openGift(gift.id)}
+                  >
+                    <div className="text-6xl mb-4 sparkle">{gift.emoji}</div>
+                    <h3 className="text-lg text-green-400 mb-2">{gift.title}</h3>
+                    <p className="text-sm text-gray-300 mb-4">{gift.desc}</p>
+                    
+                    {openedGifts.has(gift.id) ? (
+                      <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 p-4 rounded-lg border-4 border-yellow-600 mb-4">
+                        <p className="text-purple-900 font-bold">{gift.gift}</p>
+                      </div>
+                    ) : (
+                      <button className="rpg-button text-xs">Pick Flower</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mb-8">
+              <div className="rpg-panel inline-block">
+                <p className="text-lg text-white">
+                  🌺 Flowers Picked: <span className="text-pink-400">{openedGifts.size}</span> / {gifts.length}
+                </p>
+                {openedGifts.size === gifts.length && (
+                  <p className="text-yellow-400 mt-2">🎉 Garden Complete! You found all the surprises! 🎉</p>
+                )}
               </div>
             </div>
 
@@ -435,8 +549,20 @@ export default function Home() {
 
   // Main RPG Map Interface
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative">
-      {/* Animated background elements */}
+    <>
+      {/* Pixel Pet Cursor Follower */}
+      <div 
+        className="cursor-pet"
+        style={{
+          left: mousePos.x + 10,
+          top: mousePos.y - 30,
+        }}
+      >
+        🎈
+      </div>
+
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative">
+        {/* Animated background elements */}
       <div className="absolute inset-0">
         {[...Array(30)].map((_, i) => (
           <div
@@ -481,7 +607,11 @@ export default function Home() {
           </div>
 
           {/* Gift Garden */}
-          <div className="rpg-panel hover:glow transition-all duration-300 cursor-pointer float" style={{animationDelay: '0.5s'}}>
+          <div 
+            className="rpg-panel hover:glow transition-all duration-300 cursor-pointer float" 
+            style={{animationDelay: '0.5s'}}
+            onClick={() => setCurrentScreen('garden')}
+          >
             <div className="text-center">
               <div className="text-4xl mb-4">🌸</div>
               <h3 className="text-lg text-green-400 mb-2">Gift Garden</h3>
@@ -559,15 +689,24 @@ export default function Home() {
 
         {/* Bottom stats/info */}
         <div className="mt-12 text-center">
-          <div className="rpg-panel inline-block">
+          <div className="rpg-panel inline-block mb-4">
             <p className="text-sm text-gray-300">
               💕 Days Together: <span className="text-pink-400">∞</span> • 
               🏆 Love Level: <span className="text-yellow-400">MAX</span> • 
               ✨ Magic Points: <span className="text-blue-400">9999</span>
             </p>
           </div>
+          <div>
+            <button 
+              onClick={toggleMusic}
+              className="rpg-button text-xs"
+            >
+              {musicEnabled ? '🔊 Music ON' : '🔇 Music OFF'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
+    </>
   );
 }

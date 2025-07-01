@@ -108,3 +108,19 @@ body {
 .rpg-text-glow {
   text-shadow: 2px 2px 0px #000, 0 0 10px rgba(255, 107, 157, 0.8);
 }
+
+.cursor-pet {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 24px;
+  transition: all 0.1s ease;
+  animation: pet-bounce 2s ease-in-out infinite;
+}
+
+@keyframes pet-bounce {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(5deg); }
+  50% { transform: translateY(0px) rotate(0deg); }
+  75% { transform: translateY(-3px) rotate(-5deg); }
+}
